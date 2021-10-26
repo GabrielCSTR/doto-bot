@@ -1,5 +1,5 @@
 {
-  "name": "lonely-bot",
+  "name": "doto-bot",
   "version": "1.0.0",
   "description": "Discord bot for aggregating and presenting Dota 2 stats",
   "main": "index.js",
@@ -18,14 +18,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/angary/lonely-bot.git"
+    "url": "git+https://github.com/GabrielCSTR/doto-bot.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/angary/lonely-bot/issues"
+    "url": "https://github.com/GabrielCSTR/doto-bot/issues"
   },
-  "homepage": "https://github.com/angary/lonely-bot#readme",
+  "homepage": "https://github.com/GabrielCSTR/doto-bot#readme",
   "dependencies": {
     "@discordjs/builders": "^0.6.0",
     "@discordjs/opus": "^0.6.0",

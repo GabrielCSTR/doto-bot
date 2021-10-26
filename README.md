@@ -1,6 +1,6 @@
-# Discord Lonely Bot
+# Discord Doto Bot
 
-Link to add to your server [here](https://discord.com/api/oauth2/authorize?client_id=647044127313362980&permissions=2184194112&scope=bot%20applications.commands).
+Link to add to your server [here](https://discord.com/api/oauth2/authorize?client_id=894596292876054558&permissions=8&scope=bot%20applications.commands).
 
 ## Table Of Contents
 
@@ -8,7 +8,7 @@ Link to add to your server [here](https://discord.com/api/oauth2/authorize?clien
 2. [Setup](#Setup)
 3. [Extra Information](#Extra_Information)
 
-## Example Usages <a name="Example_Usages"></a>
+<!-- ## Example Usages <a name="Example_Usages"></a>
 
 | Command name | Example                                                   |
 | ------------ | --------------------------------------------------------- |
@@ -16,7 +16,7 @@ Link to add to your server [here](https://discord.com/api/oauth2/authorize?clien
 | `counter`    | ![counter command example](https://imgur.com/DK4QY5x.png) |
 | `meta`       | ![meta command example](https://imgur.com/UigP7Yc.png)    |
 | `profile`    | ![profile command example](https://imgur.com/d2ihZwg.png) |
-| `steamid`    | ![steamid command example](https://imgur.com/mJQlz5t.png) |
+| `steamid`    | ![steamid command example](https://imgur.com/mJQlz5t.png) | -->
 
 ## Setup <a name="Setup"></a>
 

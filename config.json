@@ -1,9 +1,9 @@
 {
   "prefix": ">",
   "activity": "help",
-  "clientName": "lonely",
+  "clientName": "Doto",
   "profilePicture": "https://i.imgur.com/DruFG9t.png",
-  "githubLink": "https://github.com/angary/Lonely-Bot",
-  "inviteLink": "https://discord.com/api/oauth2/authorize?client_id=647044127313362980&permissions=2184194112&scope=bot%20applications.commands",
+  "githubLink": "https://github.com/GabrielCSTR/doto-bot",
+  "inviteLink": "https://discord.com/api/oauth2/authorize?client_id=894596292876054558&permissions=8&scope=bot%20applications.commands",
   "vcStandbyDuration": 600000
 }

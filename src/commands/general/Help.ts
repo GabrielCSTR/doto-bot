@@ -168,7 +168,7 @@ export default class Help extends Command {
   private addHelpAndSupport(helpEmbed: MessageEmbed): void {
     helpEmbed.addField(
       "**Help and Support**",
-      `Add lonely to your server: **[Link](${inviteLink})**\n \
+      `Add Doto to your server: **[Link](${inviteLink})**\n \
       If slash commands do not appear, reinvite this bot with the link above.\n \
       I'm **[open source](${githubLink})**! Feel free to add an issue or make a PR.`
     );
