@@ -1,0 +1,9 @@
+{
+  "prefix": ">",
+  "activity": "help",
+  "clientName": "lonely",
+  "profilePicture": "https://i.imgur.com/DruFG9t.png",
+  "githubLink": "https://github.com/angary/Lonely-Bot",
+  "inviteLink": "https://discord.com/api/oauth2/authorize?client_id=647044127313362980&permissions=2184194112&scope=bot%20applications.commands",
+  "vcStandbyDuration": 600000
+}

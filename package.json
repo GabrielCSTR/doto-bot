@@ -1,0 +1,68 @@
+{
+  "name": "lonely-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for aggregating and presenting Dota 2 stats",
+  "main": "index.js",
+  "engines": {
+    "node": ">=16.8.0",
+    "npm": ">=7.21.0"
+  },
+  "scripts": {
+    "build": "tsc --esModuleInterop",
+    "format": "prettier --write --ext .ts .",
+    "lint": "eslint \"**/*.ts\" --fix",
+    "prepare": "husky install",
+    "start": "npm run build && node --experimental-modules ./dist/src/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "jest --coverage --forceExit --verbose --detectOpenHandles"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/angary/lonely-bot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/angary/lonely-bot/issues"
+  },
+  "homepage": "https://github.com/angary/lonely-bot#readme",
+  "dependencies": {
+    "@discordjs/builders": "^0.6.0",
+    "@discordjs/opus": "^0.6.0",
+    "@discordjs/rest": "^0.1.0-canary.0",
+    "@discordjs/voice": "^0.6.0",
+    "axios": "^0.21.1",
+    "cheerio": "^1.0.0-rc.10",
+    "discord-api-types": "^0.22.0",
+    "discord.js": "^13.1.0",
+    "dotenv": "^10.0.0",
+    "ffmpeg": "^0.0.4",
+    "ffmpeg-static": "^4.4.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "libsodium-wrappers": "^0.7.9",
+    "mongoose": "^6.0.2",
+    "node-fetch": "^2.6.1",
+    "ytdl-core": "^4.9.1",
+    "ytsr": "^3.5.3"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^2.0.4",
+    "@types/jest": "^27.0.1",
+    "@types/node-fetch": "^2.5.12",
+    "@typescript-eslint/eslint-plugin": "^4.29.3",
+    "@typescript-eslint/parser": "^4.29.3",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.24.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.4.1",
+    "eslint-plugin-promise": "^5.1.0",
+    "eslint-plugin-unused-imports": "^1.1.4",
+    "husky": "^7.0.2",
+    "jest": "^27.0.6",
+    "prettier": "^2.3.2",
+    "ts-jest": "^27.0.5",
+    "typescript": "^4.4.2"
+  }
+}
