@@ -10,7 +10,7 @@ export default class Ready extends Event {
 
       // Load up slash commands
       if (token !== undefined) {
-        const rest = new REST({ version: "9" }).setToken(token);
+        const rest = new REST({ version: "1" }).setToken(token);
         const slashCommandsJSON = [];
         slashCommands.forEach((command) =>
           slashCommandsJSON.push(command.data.toJSON())
@@ -26,9 +26,12 @@ export default class Ready extends Event {
           body: slashCommandsJSON,
         });
       }
-      this.client.user.setActivity(`/${activity}`);
+
+      this.client.user.setActivity(`${activity}`);
+
       console.log(`Active in ${this.client.guilds.cache.size} servers!`);
       console.log(`${this.client.user.tag} is ready!`);
+      
     } catch (err) {
       console.log(err);
     }
