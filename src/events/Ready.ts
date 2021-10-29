@@ -10,7 +10,7 @@ export default class Ready extends Event {
 
       // Load up slash commands
       if (token !== undefined) {
-        const rest = new REST({ version: "1" }).setToken(token);
+        const rest = new REST({ version: "9" }).setToken(token);
         const slashCommandsJSON = [];
         slashCommands.forEach((command) =>
           slashCommandsJSON.push(command.data.toJSON())
