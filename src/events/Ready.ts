@@ -1,5 +1,5 @@
 import { activity } from "../../config.json";
-import { Event } from "../types/Event";
+import { Event } from "../Event";
 import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/rest/v9";
 
@@ -26,12 +26,9 @@ export default class Ready extends Event {
           body: slashCommandsJSON,
         });
       }
-
-      this.client.user.setActivity(`${activity}`);
-
+      this.client.user.setActivity(`/${activity}`);
       console.log(`Active in ${this.client.guilds.cache.size} servers!`);
       console.log(`${this.client.user.tag} is ready!`);
-      
     } catch (err) {
       console.log(err);
     }

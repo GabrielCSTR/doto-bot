@@ -1,4 +1,4 @@
-import { Command } from "../../types/Command";
+import { Command } from "../../Command";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import axios from "axios";
 import { CommandInteraction, Message, MessageEmbed } from "discord.js";
@@ -7,7 +7,7 @@ export default class Meme extends Command {
   name = "meme";
   visible = true;
   description = "Get a random meme from r/dankmemes";
-  information = "";
+  information = this.description;
   aliases = [];
   args = false;
   usage = "";
@@ -19,10 +19,9 @@ export default class Meme extends Command {
     .setName(this.name)
     .setDescription(this.description);
   execute = async (message: Message): Promise<Message> => {
-    const channel = message.channel;
-    channel.sendTyping();
+    message.channel.sendTyping();
     const memeEmbed = await this.meme();
-    return channel.send({ embeds: [memeEmbed] });
+    return message.channel.send({ embeds: [memeEmbed] });
   };
   executeSlash = async (interaction: CommandInteraction): Promise<void> => {
     const memeEmbed = await this.meme();
@@ -50,9 +49,9 @@ export default class Meme extends Command {
       .setDescription(`**${post.author}**`)
       .setURL(memeUrl)
       .setImage(post.url)
-      .setFooter(
-        `⬆ ${post.ups} | 💬 ${post.num_comments} | 📅 ${day}/${month}/${year}`
-      );
+      .setFooter({
+        text: `⬆ ${post.ups} | 💬 ${post.num_comments} | 📅 ${day}/${month}/${year}`,
+      });
     return memeEmbed;
   }
 }

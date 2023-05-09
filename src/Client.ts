@@ -1,7 +1,12 @@
 import { Command } from "./Command";
 import { Event } from "./Event";
-import { IServerMusicQueue } from "./interfaces/Bot";
-import { Collection, Client as DiscordClient, Intents } from "discord.js";
+import { ServerMusicQueue } from "./interfaces/Bot";
+import {
+  Collection,
+  Client as DiscordClient,
+  Intents,
+  EmbedAuthorData,
+} from "discord.js";
 import { readdirSync, statSync } from "fs";
 import { join } from "path";
 
@@ -9,9 +14,10 @@ export class Client extends DiscordClient {
   commands: Collection<string, Command>;
   slashCommands: Collection<string, Command>;
   prefixes: { [key: number]: string };
-  musicQueue: Map<string, IServerMusicQueue>;
+  musicQueue: Map<string, ServerMusicQueue>;
   token: string;
   testGuildId: string;
+  authorData: EmbedAuthorData;
 
   /**
    * @param commandsPath the path from root to the commands directory
@@ -39,15 +45,16 @@ export class Client extends DiscordClient {
     this.testGuildId = testGuildId;
 
     // Load all the commands
-    readdirSync(commandsPath).forEach((dir) => {
-      if (statSync(join(commandsPath, dir)).isDirectory()) {
+    readdirSync(commandsPath)
+      .filter((dir) => statSync(join(commandsPath, dir)).isDirectory())
+      .forEach((dir) => {
         const commandFiles = readdirSync(`${commandsPath}/${dir}`).filter(
           (f) => f.endsWith(".js") || f.endsWith(".ts")
         );
 
         for (const file of commandFiles) {
           // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const FoundCommand = require(`../commands/${dir}/${file}`).default;
+          const FoundCommand = require(`./commands/${dir}/${file}`).default;
           const command: Command = new FoundCommand(this);
 
           console.log(`Loaded command ${dir}/${file}`);
@@ -58,8 +65,7 @@ export class Client extends DiscordClient {
             this.slashCommands.set(command.name, command);
           }
         }
-      }
-    });
+      });
 
     // Load all the events
     const eventFiles = readdirSync(eventsPath).filter(
@@ -67,7 +73,7 @@ export class Client extends DiscordClient {
     );
     for (const file of eventFiles) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const FoundEvent = require(join(`../events/${file}`)).default;
+      const FoundEvent = require(`./events/${file}`).default;
       const event: Event = new FoundEvent(this);
       const eventFileName = file.split(".")[0];
       const eventName =

@@ -1,5 +1,5 @@
 import { prefix, githubLink, inviteLink } from "../../../config.json";
-import { Command } from "../../types/Command";
+import { Command } from "../../Command";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import {
   Collection,
@@ -12,7 +12,7 @@ export default class Help extends Command {
   name = "help";
   visible = true;
   description = "List all of my commands or info about a specific command";
-  information = "";
+  information = this.description;
   aliases = ["commands"];
   args = false;
   usage = "[command name]";
@@ -29,12 +29,7 @@ export default class Help extends Command {
         .setDescription("The command to get specific information on")
     );
   execute = (message: Message, args: string[]): Promise<Message> => {
-    let helpEmbed: MessageEmbed;
-    if (args.length > 0) {
-      helpEmbed = this.help(args[0]);
-    } else {
-      helpEmbed = this.help();
-    }
+    const helpEmbed = this.help(args[0]);
     return message.channel.send({ embeds: [helpEmbed] });
   };
 
@@ -51,8 +46,7 @@ export default class Help extends Command {
   private help(command?: string): MessageEmbed {
     const commands = this.client.commands;
     const helpEmbed = this.createColouredEmbed();
-
-    if (command === undefined || command === null) {
+    if (!command) {
       this.generalInformation(helpEmbed, commands);
     } else {
       this.specificInformation(helpEmbed, commands, command);
@@ -72,14 +66,13 @@ export default class Help extends Command {
   ): void {
     // Add all the details of the commands
     helpEmbed.setTitle("Available commands");
-
-    this.addCategory("general", helpEmbed, commands);
-    this.addCategory("dota", helpEmbed, commands);
-    this.addCategory("music", helpEmbed, commands);
-    this.addHelpAndSupport(helpEmbed);
-    helpEmbed.setFooter(
-      `You can send "/help [command name]" to get info on a specific command!`
+    ["general", "dota", "music"].forEach((category) =>
+      this.addCategory(category, helpEmbed, commands)
     );
+    this.addHelpAndSupport(helpEmbed);
+    helpEmbed.setFooter({
+      text: `You can send "/help [command name]" to get info on a specific command!`,
+    });
   }
 
   /**
@@ -94,26 +87,13 @@ export default class Help extends Command {
     helpEmbed: MessageEmbed,
     commands: Collection<string, Command>
   ): void {
-    // Format the relevant data, not sure how to use filter function
-    const data = [];
-    const dataCommands = commands;
-    data.push(
-      dataCommands
-        .map((command) => {
-          if (command.category === category && command.visible) {
-            return `**${command.name}**: ${command.description}\n`;
-          } else {
-            return "";
-          }
-        })
-        .join("")
-    );
-
     // Add it to the embed
     helpEmbed.addField(
       `**${category.charAt(0).toUpperCase() + category.slice(1)}**`,
-      data.join("\n"),
-      false
+      commands
+        .filter((command) => command.category === category && command.visible)
+        .map((command) => `**${command.name}**: ${command.description}\n`)
+        .join("")
     );
   }
 
@@ -138,25 +118,19 @@ export default class Help extends Command {
 
     // Else find information on the command
     helpEmbed.setTitle(`Help for: ${command.name}`);
-    const data = [];
-    if (command.aliases.length > 0) {
-      data.push(`**Aliases:** ${command.aliases.join(", ")}`);
+    let d = `**Information:** ${command.information}`;
+    if (command.aliases.length) {
+      d += `\n**Aliases:** ${command.aliases.join(", ")}`;
     }
-    if (command.information) {
-      data.push(`**Information:** ${command.information}`);
-    } else if (command.description) {
-      data.push(`**Information:** ${command.description}`);
-    }
-    if (command.usage) {
-      data.push(`**Usage:** \`${prefix}${command.name} ${command.usage}\``);
-    }
-    if (command.example) {
-      data.push(`**Example:** \`${prefix}${command.name} ${command.example}\``);
-    }
+    ["usage", "example"]
+      .filter((f) => command[f])
+      .forEach(
+        (f) => (d += `\n**${f}:** \`${prefix}${command.name} ${command[f]}\``)
+      );
     if (command.cooldown) {
-      data.push(`**Cooldown:** ${command.cooldown} second(s)`);
+      d += `\n**Cooldown:** ${command.cooldown} second(s)`;
     }
-    helpEmbed.setDescription(data.join("\n"));
+    helpEmbed.setDescription(d);
   }
 
   /**
@@ -168,7 +142,7 @@ export default class Help extends Command {
   private addHelpAndSupport(helpEmbed: MessageEmbed): void {
     helpEmbed.addField(
       "**Help and Support**",
-      `Add Doto to your server: **[Link](${inviteLink})**\n \
+      `Add lonely to your server: **[Link](${inviteLink})**\n \
       If slash commands do not appear, reinvite this bot with the link above.\n \
       I'm **[open source](${githubLink})**! Feel free to add an issue or make a PR.`
     );

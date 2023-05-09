@@ -1,4 +1,4 @@
-import { Command } from "../../types/Command";
+import { Command } from "../../Command";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction, Message } from "discord.js";
 
@@ -6,7 +6,7 @@ export default class Ping extends Command {
   name = "ping";
   visible = false;
   description = "Sends back 'Pong!' and the latency of user from bot server";
-  information = "";
+  information = this.description;
   aliases = [];
   args = false;
   usage = "";

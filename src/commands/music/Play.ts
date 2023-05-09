@@ -1,12 +1,13 @@
 import { vcStandbyDuration } from "../../../config.json";
-import { Command } from "../../types/Command";
-import { IServerMusicQueue, ISong } from "../../types/interfaces/Bot";
+import { Command } from "../../Command";
+import { ServerMusicQueue, Song } from "../../interfaces/Bot";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import {
   AudioPlayer,
   AudioPlayerStatus,
   createAudioPlayer,
   createAudioResource,
+  DiscordGatewayAdapterCreator,
   entersState,
   getVoiceConnection,
   joinVoiceChannel,
@@ -117,7 +118,7 @@ export default class Play extends Command {
     try {
       songInfo = await this.getSongInfo(args);
     } catch (error) {
-      return this.createColouredEmbed(error);
+      return this.createColouredEmbed(error.message);
     }
     if (songInfo === null) {
       return this.createColouredEmbed("Could not find the song");
@@ -125,7 +126,7 @@ export default class Play extends Command {
 
     // Create the song object
     const duration = parseInt(songInfo.videoDetails.lengthSeconds);
-    const song: ISong = {
+    const song: Song = {
       info: songInfo,
       title: songInfo.videoDetails.title,
       url: songInfo.videoDetails.video_url,
@@ -141,10 +142,9 @@ export default class Play extends Command {
       voiceChannel,
       textChannel
     );
-    const guildId = guild.id;
     if (!serverQueue.isPlaying) {
       // If a new queue was created then we immediately play the song
-      this.playSong(guildId, this.client.musicQueue);
+      this.playSong(guild.id, this.client.musicQueue);
     }
     return this.createColouredEmbed(
       `Queued ${this.getFormattedLink(song)} (${song.formattedDuration})`
@@ -170,26 +170,24 @@ export default class Play extends Command {
         searchString = await ytsr.getFilters(args.join(" "));
       } catch (error) {
         console.log(error);
-        throw "Error parsing arguments";
+        throw Error("Error parsing arguments");
       }
 
       // Try to find video
       const videoSearch = searchString.get("Type").get("Video");
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const results: any = await ytsr(videoSearch.url, {
-          limit: 1,
-        });
+        const results: any = await ytsr(videoSearch.url, { limit: 1 });
         console.log(results);
         songUrl = results.items[0].url;
       } catch (error) {
         console.log(error);
-        throw "Error searching for the song";
+        throw Error("Error searching for the song");
       }
 
       // Check that song URL is valid
       if (!ytdl.validateURL(songUrl)) {
-        throw "Could not find the song";
+        throw Error("Could not find the song");
       }
     }
 
@@ -198,7 +196,7 @@ export default class Play extends Command {
       songInfo = await ytdl.getInfo(songUrl);
     } catch (error) {
       console.log(error);
-      throw "Error getting the video from the URL";
+      throw Error("Error getting the video from the URL");
     }
     return songInfo;
   }
@@ -210,7 +208,7 @@ export default class Play extends Command {
    * @param song the song to play
    * @returns a promise to the created audio player
    */
-  private async getSongPlayer(song: ISong): Promise<AudioPlayer> {
+  private async getSongPlayer(song: Song): Promise<AudioPlayer> {
     const player = createAudioPlayer();
     const stream = ytdl(song.url, {
       filter: "audioonly",
@@ -236,46 +234,47 @@ export default class Play extends Command {
     const connection = joinVoiceChannel({
       channelId: channel.id,
       guildId: channel.guild.id,
-      adapterCreator: channel.guild.voiceAdapterCreator,
+      adapterCreator: channel.guild
+        .voiceAdapterCreator as unknown as DiscordGatewayAdapterCreator, // TODO: Find fix for wack types
     });
     try {
       await entersState(connection, VoiceConnectionStatus.Ready, 30_000);
       connection.on("stateChange", async (_, newState) => {
-        if (newState.status === VoiceConnectionStatus.Disconnected) {
-          if (
-            newState.reason ===
-              VoiceConnectionDisconnectReason.WebSocketClose &&
-            newState.closeCode === 4014
-          ) {
-            /**
-             * If the websocket closed with a 4014 code, this means that we
-             * should not manually attempt to reconnect but there is a chance
-             * the connection will recover itself if the reason of disconnect
-             * was due to switching voice channels. This is also the same code
-             * for being kicked from the voice channel so we allow 5 s to figure
-             * out which scenario it is. If the bot has been kicked, we should
-             * destroy the voice connection
-             */
-            try {
-              await entersState(
-                connection,
-                VoiceConnectionStatus.Connecting,
-                5_000
-              );
-              // Probably moved voice channel
-            } catch {
-              connection.destroy();
-              // Probably removed from voice channel
-            }
-          } else if (connection.rejoinAttempts < 5) {
-            // The disconnect is recoverable, and we have < 5 attempts so we
-            // will reconnect
-            await wait((connection.rejoinAttempts + 1) * 5_000);
-            connection.rejoin();
-          } else {
-            // The disconnect is recoverable, but we have no more attempts
+        if (newState.status !== VoiceConnectionStatus.Disconnected) {
+          return;
+        }
+        if (
+          newState.reason === VoiceConnectionDisconnectReason.WebSocketClose &&
+          newState.closeCode === 4014
+        ) {
+          /**
+           * If the websocket closed with a 4014 code, this means that we
+           * should not manually attempt to reconnect but there is a chance
+           * the connection will recover itself if the reason of disconnect
+           * was due to switching voice channels. This is also the same code
+           * for being kicked from the voice channel so we allow 5 s to figure
+           * out which scenario it is. If the bot has been kicked, we should
+           * destroy the voice connection
+           */
+          try {
+            await entersState(
+              connection,
+              VoiceConnectionStatus.Connecting,
+              5_000
+            );
+            // Probably moved voice channel
+          } catch {
             connection.destroy();
+            // Probably removed from voice channel
           }
+        } else if (connection.rejoinAttempts < 5) {
+          // The disconnect is recoverable, and we have < 5 attempts so we
+          // will reconnect
+          await wait((connection.rejoinAttempts + 1) * 5_000);
+          connection.rejoin();
+        } else {
+          // The disconnect is recoverable, but we have no more attempts
+          connection.destroy();
         }
       });
       return connection;
@@ -294,12 +293,12 @@ export default class Play extends Command {
    * @returns the server's music queue
    */
   private addSongToQueue(
-    song: ISong,
+    song: Song,
     guild: Guild,
     voiceChannel: VoiceChannel,
     textChannel: TextChannel
-  ): IServerMusicQueue {
-    let musicQueue: IServerMusicQueue = this.client.musicQueue.get(guild.id);
+  ): ServerMusicQueue {
+    let musicQueue: ServerMusicQueue = this.client.musicQueue.get(guild.id);
     if (musicQueue === undefined) {
       musicQueue = {
         voiceChannel: voiceChannel,
@@ -312,7 +311,6 @@ export default class Play extends Command {
       };
       this.client.musicQueue.set(guild.id, musicQueue);
     }
-
     musicQueue.songs.push(song);
     return musicQueue;
   }
@@ -327,7 +325,7 @@ export default class Play extends Command {
    */
   private async playSong(
     guildId: string,
-    musicQueue: Map<string, IServerMusicQueue>
+    musicQueue: Map<string, ServerMusicQueue>
   ): Promise<void> {
     const serverQueue = musicQueue.get(guildId);
     if (!serverQueue) {
@@ -368,8 +366,8 @@ export default class Play extends Command {
    */
   handleSongFinish(
     guildId: string,
-    musicQueue: Map<string, IServerMusicQueue>,
-    serverQueue: IServerMusicQueue
+    musicQueue: Map<string, ServerMusicQueue>,
+    serverQueue: ServerMusicQueue
   ): void {
     if (serverQueue !== null) {
       const song = serverQueue.songs[0];
@@ -392,8 +390,8 @@ export default class Play extends Command {
    */
   handleEmptyQueue(
     guildId: string,
-    musicQueue: Map<string, IServerMusicQueue>,
-    serverQueue: IServerMusicQueue,
+    musicQueue: Map<string, ServerMusicQueue>,
+    serverQueue: ServerMusicQueue,
     timeoutDuration: number
   ): void {
     const connection = getVoiceConnection(guildId);
@@ -423,7 +421,7 @@ export default class Play extends Command {
    *
    * @param serverQueue the queue for the relevant server
    */
-  sendPlayingEmbed(serverQueue: IServerMusicQueue): void {
+  sendPlayingEmbed(serverQueue: ServerMusicQueue): void {
     const song = serverQueue.songs[0];
     const songLink = this.getFormattedLink(song);
     this.createAndSendEmbed(

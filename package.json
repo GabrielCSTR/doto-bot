@@ -1,5 +1,5 @@
 {
-  "name": "doto-bot",
+  "name": "dotobot-bot",
   "version": "1.0.0",
   "description": "Discord bot for aggregating and presenting Dota 2 stats",
   "main": "index.js",
@@ -12,9 +12,10 @@
     "format": "prettier --write --ext .ts .",
     "lint": "eslint \"**/*.ts\" --fix",
     "prepare": "husky install",
-    "start": "npm run build && node --experimental-modules ./dist/src/index.js",
+    "start": "node --experimental-modules ./dist/src/index.js",
     "dev": "ts-node src/index.ts",
-    "test": "jest --coverage --forceExit --verbose --detectOpenHandles"
+    "test": "jest --coverage --forceExit --verbose --detectOpenHandles",
+    "postinstall": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -28,7 +29,7 @@
   "homepage": "https://github.com/GabrielCSTR/doto-bot#readme",
   "dependencies": {
     "@discordjs/builders": "^0.6.0",
-    "@discordjs/opus": "^0.6.0",
+    "@discordjs/opus": "^0.8.0",
     "@discordjs/rest": "^0.1.0-canary.0",
     "@discordjs/voice": "^0.6.0",
     "axios": "^0.21.1",
@@ -40,14 +41,14 @@
     "ffmpeg-static": "^4.4.0",
     "fluent-ffmpeg": "^2.1.2",
     "libsodium-wrappers": "^0.7.9",
-    "mongoose": "^6.0.2",
-    "node-fetch": "^2.6.1",
+    "mongoose": "^6.4.6",
     "ytdl-core": "^4.9.1",
     "ytsr": "^3.5.3"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^2.0.4",
     "@types/jest": "^27.0.1",
+    "@types/node": "^16.11.7",
     "@types/node-fetch": "^2.5.12",
     "@typescript-eslint/eslint-plugin": "^4.29.3",
     "@typescript-eslint/parser": "^4.29.3",

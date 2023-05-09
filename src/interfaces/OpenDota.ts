@@ -1,23 +1,23 @@
 /**
  * GET /players/{account_id}
  */
-export interface IOpenDotaPlayer {
+export interface OpenDotaPlayer {
   tracked_until: string;
   solo_competitive_rank: string;
   competitive_rank: string;
   rank_tier: number;
   leaderboard_rank: number;
-  mmr_estimate: IMMREstimate;
-  profile: IProfile;
+  mmr_estimate: MMREstimate;
+  profile: Profile;
 }
 
-interface IMMREstimate {
+interface MMREstimate {
   estimate: number;
   stdDev: number;
   n: number;
 }
 
-interface IProfile {
+interface Profile {
   account_id: number;
   personaname: string;
   name: string;
@@ -36,7 +36,7 @@ interface IProfile {
 /**
  * GET /players/{account_id}/wl
  */
-export interface IOpenDotaWinLose {
+export interface OpenDotaWinLose {
   win: number;
   lose: number;
 }
@@ -44,7 +44,7 @@ export interface IOpenDotaWinLose {
 /**
  * GET /players/{account_id}/heroes
  */
-export interface IOpenDotaPlayerHeroes {
+export interface OpenDotaPlayerHeroes {
   hero_id: string;
   last_played: number;
   games: number;
@@ -58,7 +58,7 @@ export interface IOpenDotaPlayerHeroes {
 /**
  * GET /heroes
  */
-export interface IOpenDotaHeroes {
+export interface OpenDotaHeroes {
   id: number;
   name: string;
   localized_name: string;
@@ -70,7 +70,7 @@ export interface IOpenDotaHeroes {
 /**
  * GET /players/{account_id}/rankings
  */
-export interface IOpenDotaPlayerRankings {
+export interface OpenDotaPlayerRankings {
   hero_id: string;
   score: number;
   percent_rank: number;
@@ -80,7 +80,7 @@ export interface IOpenDotaPlayerRankings {
 /**
  * GET /players/{account_id}/recentMatches
  */
-export interface IOpenDotaPlayerRecentMatches {
+export interface OpenDotaPlayerRecentMatches {
   match_id: number;
   player_slot: number;
   radiant_win: boolean;
@@ -94,6 +94,13 @@ export interface IOpenDotaPlayerRecentMatches {
   deaths: number;
   assists: number;
   skill: number;
+  average_rank: number;
+  xp_per_min: number;
+  gold_per_min: number;
+  hero_damage: number;
+  tower_damage: number;
+  hero_healing: number;
+  last_hits: number;
   lane: number;
   lane_role: number;
   is_roaming: boolean;
@@ -102,10 +109,28 @@ export interface IOpenDotaPlayerRecentMatches {
   party_size: number;
 }
 
+/**
+ * GET /players/{account_id}/counts
+ */
+interface OpenDotaPlayerCount {
+  [key: string]: { games: number; win: number };
+}
+
+export interface OpenDotaPlayerCounts {
+  leaver_status: OpenDotaPlayerCount;
+  game_mode: OpenDotaPlayerCount;
+  lobby_type: OpenDotaPlayerCount;
+  lane_role: OpenDotaPlayerCount;
+  region: OpenDotaPlayerCount;
+  patch: OpenDotaPlayerCount;
+  is_radiant: OpenDotaPlayerCount;
+}
+
 export type OpenDotaData =
-  | IOpenDotaPlayer
-  | IOpenDotaWinLose
-  | IOpenDotaPlayerHeroes
-  | IOpenDotaHeroes
-  | IOpenDotaPlayerRankings
-  | IOpenDotaPlayerRecentMatches;
+  | OpenDotaPlayer
+  | OpenDotaWinLose
+  | OpenDotaPlayerHeroes
+  | OpenDotaHeroes
+  | OpenDotaPlayerRankings
+  | OpenDotaPlayerRecentMatches
+  | OpenDotaPlayerCounts;

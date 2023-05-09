@@ -1,14 +1,9 @@
-import { Command } from "../../types/Command";
-import { IMetaHeroData } from "../../types/interfaces/Bot";
+import { Command } from "../../Command";
+import { MetaHeroData } from "../../interfaces/Bot";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import axios from "axios";
 import cheerio from "cheerio";
-import {
-  CommandInteraction,
-  Message,
-  MessageComponentInteraction,
-  MessageEmbed,
-} from "discord.js";
+import { CommandInteraction, Message, MessageEmbed } from "discord.js";
 
 export default class Meta extends Command {
   name = "meta";
@@ -41,7 +36,7 @@ export default class Meta extends Command {
     const sentMessage = await message.channel.send({ embeds: [metaEmbed] });
     if (
       !message.guild.me.permissions.has("MANAGE_MESSAGES") ||
-      results === []
+      results.length === 0
     ) {
       return;
     }
@@ -64,7 +59,7 @@ export default class Meta extends Command {
           ? Math.max(0, page - 1)
           : Math.min(Math.floor(results.length / 10), page + 1);
       sentMessage.edit({
-        embeds: [this.createEmbedWithData(rank, results, page)],
+        embeds: [this.generateEmbed(rank, results, page)],
       });
 
       // Remove the user reactions
@@ -83,44 +78,14 @@ export default class Meta extends Command {
     const [metaEmbed, rank, results] = await this.meta(args);
 
     // Create the row of buttons
-    let row = this.createScrollButtonRow(false);
-
-    // Create functionality for the buttons
-    let page = 0;
-    const collector = interaction.channel.createMessageComponentCollector({
-      time: 60_000,
-    });
-    collector.on("collect", async (i: MessageComponentInteraction) => {
-      switch (i.customId) {
-        case "First":
-          page = 0;
-          break;
-        case "Prev":
-          page = Math.max(0, page - 1);
-          break;
-        case "Next":
-          page = Math.min(Math.floor(results.length / 10), page + 1);
-          break;
-        case "Last":
-          page = Math.floor(results.length / 10);
-          break;
-      }
-      try {
-        await i.update({
-          embeds: [this.createEmbedWithData(rank, results, page)],
-          components: [row],
-        });
-      } catch (error) {
-        console.log(error);
-      }
-      return;
-    });
-
-    // Remove the buttons after a minute
-    collector.on("end", () => {
-      row = this.createScrollButtonRow(true);
-      interaction.editReply({ embeds: [metaEmbed], components: [row] });
-    });
+    const maxPages = Math.floor(results.length / 10);
+    const row = this.createActiveScrollBar(
+      interaction,
+      maxPages,
+      this,
+      this.generateEmbed,
+      [rank, results]
+    );
 
     return await interaction.reply({ embeds: [metaEmbed], components: [row] });
   };
@@ -135,14 +100,14 @@ export default class Meta extends Command {
    */
   private async meta(
     args: string[]
-  ): Promise<[MessageEmbed, string, IMetaHeroData[]]> {
+  ): Promise<[MessageEmbed, string, MetaHeroData[]]> {
     const rank = args.length === 0 ? "archon" : args[0];
     const rankCol = this.getRankCol(rank);
     if (rankCol === -1) {
       return [this.createColouredEmbed("Invalid rank"), rank, []];
     }
 
-    const results: IMetaHeroData[] = [];
+    const results: MetaHeroData[] = [];
     let metaEmbed: MessageEmbed;
     await axios
       .get(
@@ -155,11 +120,11 @@ export default class Meta extends Command {
           div.container-inner.container-inner-content > div.content-inner > \
           section > footer > article > table > tbody > tr"
         );
-        table.each((index, element) => {
+        table.each((_, row) => {
           results.push({
-            name: $(element).find("td:nth-child(2)").text(),
-            pickRate: $(element).find(`td:nth-child(${rankCol})`).text(),
-            winRate: $(element)
+            name: $(row).find("td:nth-child(2)").text(),
+            pickRate: $(row).find(`td:nth-child(${rankCol})`).text(),
+            winRate: $(row)
               .find(`td:nth-child(${rankCol + 1})`)
               .text(),
             index: 0,
@@ -178,7 +143,7 @@ export default class Meta extends Command {
         results
           .sort((a, b) => parseFloat(b.winRate) - parseFloat(a.winRate))
           .forEach((result, index) => (result.index = index));
-        metaEmbed = this.createEmbedWithData(rank, results, 0);
+        metaEmbed = this.generateEmbed(rank, results, 0);
       });
     return [metaEmbed, rank, results];
   }
@@ -217,14 +182,12 @@ export default class Meta extends Command {
    * @param page the current page of the list
    * @returns the new embed with the data
    */
-  private createEmbedWithData(
+  protected generateEmbed(
     rank: string,
-    results: IMetaHeroData[],
+    results: MetaHeroData[],
     page: number
   ): MessageEmbed {
-    const [start, end] = [page * 10, (page + 1) * 10];
-
-    results = results.slice(start, end);
+    results = results.slice(page * 10, page * 10 + 10);
 
     return this.createColouredEmbed()
       .setTitle("Meta")
@@ -236,30 +199,23 @@ export default class Meta extends Command {
       .addFields(
         {
           name: "Hero",
-          value: results
-            .map((result) => `${result.index + 1}. **${result.name}**`)
-            .join("\n") as string,
+          value: results.map((r) => `${r.index + 1}. **${r.name}**`).join("\n"),
           inline: true,
         },
         {
           name: "Win Rate",
-          value: results
-            .map((result) => `${result.winRate}`)
-            .join("\n") as string,
+          value: results.map((r) => `${r.winRate}`).join("\n"),
           inline: true,
         },
         {
           name: "Popularity",
           value: results
-            .map(
-              (result) =>
-                `${result.popularity}${this.ordinalSuffix(result.popularity)}`
-            )
+            .map((r) => `${r.popularity}${this.ordinalSuffix(r.popularity)}`)
             .join("\n") as string,
           inline: true,
         }
       )
-      .setFooter(`Page ${page + 1}`);
+      .setFooter({ text: `Page ${page + 1}` });
   }
 
   /**

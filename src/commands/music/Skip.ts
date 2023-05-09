@@ -1,4 +1,4 @@
-import { Command } from "../../types/Command";
+import { Command } from "../../Command";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import {
   CommandInteraction,
@@ -12,7 +12,7 @@ export default class Skip extends Command {
   name = "skip";
   visible = true;
   description = "Skip the current song in the queue";
-  information = "";
+  information = this.description;
   aliases = [];
   args = false;
   usage = "";

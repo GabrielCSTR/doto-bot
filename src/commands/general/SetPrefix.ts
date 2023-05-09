@@ -1,6 +1,6 @@
 import { prefix } from "../../../config.json";
-import { GuildModel } from "../../database/Guild";
-import { Command } from "../../types/Command";
+import { Command } from "../../Command";
+import { GuildModel } from "../../models/Guild";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction, Message, MessageEmbed } from "discord.js";
 

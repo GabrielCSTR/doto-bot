@@ -1,14 +1,15 @@
 import { Client } from "./Client";
-import { ISong } from "./interfaces/Bot";
+import { Song } from "./interfaces/Bot";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import {
   CommandInteraction,
   Message,
   MessageActionRow,
   MessageButton,
+  MessageComponentInteraction,
   MessageEmbed,
   StageChannel,
-  TextBasedChannels,
+  TextBasedChannel,
   VoiceChannel,
 } from "discord.js";
 
@@ -56,16 +57,63 @@ export abstract class Command {
     return row;
   }
 
+  protected createActiveScrollBar(
+    interaction: CommandInteraction,
+    maxPages: number,
+    cls: Command,
+    generateEmbed: CallableFunction,
+    args: unknown[],
+    duration = 120_000
+  ): MessageActionRow {
+    const boundGenerateEmbed = generateEmbed.bind(cls);
+    let row = this.createScrollButtonRow(false);
+    const collector = interaction.channel.createMessageComponentCollector({
+      time: duration,
+    });
+    let page = 0;
+    collector.on("collect", async (i: MessageComponentInteraction) => {
+      switch (i.customId) {
+        case "First":
+          page = 0;
+          break;
+        case "Prev":
+          page = Math.max(0, page - 1);
+          break;
+        case "Next":
+          page = Math.min(Math.floor(maxPages), page + 1);
+          break;
+        case "Last":
+          page = maxPages;
+      }
+      try {
+        await i.update({
+          embeds: [boundGenerateEmbed(...args, page)],
+          components: [row],
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    });
+    collector.on("end", () => {
+      (row = this.createScrollButtonRow(true)),
+        interaction.editReply({
+          embeds: [boundGenerateEmbed(...args, page)],
+          components: [row],
+        });
+    });
+    return row;
+  }
+
   /**
-   * Creates a new embed with that message and sends it to the channel, and
+   * Creates a new embed with that description and sends it to the channel, and
    * stop typing in the channel
    *
    * @param channel the channel to send the message in
-   * @param message the message to send
+   * @param description the description to send
    * @returns a promise for the sent message
    */
   protected createAndSendEmbed(
-    channel: TextBasedChannels,
+    channel: TextBasedChannel,
     description?: string
   ): Promise<Message> {
     return channel.send({
@@ -77,12 +125,8 @@ export abstract class Command {
    * @param description (optional) the description for the embed
    * @returns a new MessageEmbed with the blue colouring
    */
-  protected createColouredEmbed(description?: string): MessageEmbed {
-    const embed = new MessageEmbed().setColor("#0099ff");
-    if (description) {
-      embed.setDescription(description);
-    }
-    return embed;
+  protected createColouredEmbed(description = ""): MessageEmbed {
+    return new MessageEmbed().setColor("#0099ff").setDescription(description);
   }
 
   /**
@@ -126,7 +170,7 @@ export abstract class Command {
    * @param song the current song
    * @returns a markdown formatted link
    */
-  protected getFormattedLink(song: ISong): string {
+  protected getFormattedLink(song: Song): string {
     return `[${song.title}](${song.url})`;
   }
 }

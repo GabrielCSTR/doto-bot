@@ -1,4 +1,4 @@
-import { Command } from "../../types/Command";
+import { Command } from "../../Command";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { getVoiceConnection } from "@discordjs/voice";
 import {
@@ -12,7 +12,7 @@ export default class Stop extends Command {
   name = "stop";
   visible = true;
   description = "Remove all songs from the current queue";
-  information = "";
+  information = this.description;
   aliases = [];
   args = false;
   usage = "";

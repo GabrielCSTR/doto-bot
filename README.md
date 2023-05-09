@@ -25,7 +25,7 @@ Set up the environment variables by copying over the text in `.env.example` to `
 | Environment variable | Value                        |
 | -------------------- | ---------------------------- |
 | `BOT_TOKEN`          | Discord bot token            |
-| `BOT_URI`            | Mongodb connection uri       |
+| `BOT_MONGO_URI`            | Mongodb connection uri       |
 | `TEST_SERVER_ID`     | Server id of the test server |
 
 The reason a test server is required, is because global slash commands can take up to an hour to register across all guilds, whereas guild specific commands update immediately making it useful for testing.
@@ -67,5 +67,5 @@ TypeScript is used for the bot for better code checking, and documentation. You 
 
 ### Cool Facts
 
-- The bot is named lonely bot after Lone Druid a Dota 2 hero who I spam too much.
+- The bot is named DotoBo bot after Lone Druid a Dota 2 hero who I spam too much.
 - Heroku runs whatever code is on the master branch, and reloads the bot after an update, so try to reduce the number of commits to master, as each reload results in a short downtime.
